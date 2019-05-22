@@ -1,0 +1,120 @@
+<!-- <h1>Angular Bot</h1> -->
+<!-- <div *ngIf="!userId" id="convoContainer" class="container"
+  style="height: 100%;font-size: x-large;color: #ff2828;line-height: 200px;text-align: center;margin-bottom: 54px;">
+  <span style="display: inline-block;vertical-align: middle;line-height: normal;"></span>
+  Session Ended ! Please Login Before Using Chatbot
+</div>
+<div *ngIf="userId" #convoContainer id="convoContainer" class="container" style="margin-bottom: 54px"> -->
+<div #convoContainer id="convoContainer" class="container" style="margin-bottom: 54px">
+  <!-- <div class="message-list-container">
+    <div class="layout message-list"> -->
+  <table id="" class="message" *ngFor="let message of messages | async ; let last = last; let idx = index">
+    <tr *ngIf="idx!==0">
+      <!-- My message -->
+      <td>
+        <div style="display:flex-root;">
+          <div class="bubble" [ngClass]="{ 'from': message.sentBy === 'bot',
+                                                    'to':   message.sentBy === 'user' }">
+            <small>
+              {{ message.content }}
+            </small>
+            <small class="message-time">
+              {{ message.timestamp | date:'medium' }}
+            </small>
+          </div>
+        </div>
+        <div>
+          <div class="card" *ngIf="message.resCard">
+            <div style="display: block;vertical-align: middle;text-align: center;">
+              <img *ngIf="message.resCard.genericAttachments[0].imageUrl"
+                src="{{message.resCard.genericAttachments[0].imageUrl}}" alt="Image" class="card-image">
+            </div>
+            <div class="card-content">
+              <div *ngIf="message.resCard.genericAttachments[0].title" class="card-title">
+                {{message.resCard.genericAttachments[0].title}}</div>
+              <div *ngIf="message.resCard.genericAttachments[0].subTitle" class="card-subtitle">
+                {{message.resCard.genericAttachments[0].subTitle}}</div>
+              <br>
+              <!-- <div class="card-text">{{message.resCard.genericAttachments[0].buttons}}</div> -->
+              <div id="{{'btn-'+message.timestamp}}" *ngIf="message.resCard.genericAttachments[0].buttons.length>0">
+                <button name="{{'btn'+message.timestamp}}" [disabled]="hasButtonBeenClicked" id="message.timestamp"
+                  class="suggestion" *ngFor="let resButton of message.resCard.genericAttachments[0].buttons" mat-button
+                  (click)="sendMessage(resButton.value,'btn-'+message.timestamp, false)">{{resButton.text}}</button>
+                <!-- <a  target="_blank"
+                                    rel="noopener noreferrer" 
+                                    class="suggestion">{{resButton.text}}</a> -->
+              </div>
+            </div>
+          </div>
+          <!-- data picker cards -->
+          <div class="card" *ngIf="message?.slotToElicit==='startDate' || message?.slotToElicit==='endDate'">
+            <div class="card-content" style="display: flex;">
+              <input #ref [matDatepicker]="picker" [min]="minDate" [max]="maxDate" matInput placeholder="Select Date"
+                (dateInput)="sendMessage($event.targetElement.value, null, false)" value="" (click)="picker.open()">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker touchUi #picker></mat-datepicker>
+            </div>
+          </div>
+          <!-- select card -->
+          <div class="card" *ngIf="message?.slotToElicit==='leaveType' || message?.slotToElicit==='leaveSuccessor'">
+            <div class="card-content" style="display: flex;">
+              <mat-form-field>
+                <mat-label>Select</mat-label>
+                <mat-select (selectionChange)="sendMessage($event.value, null, false)">
+                  <mat-option>None</mat-option>
+                  <mat-option *ngFor="let type of types" [value]="type.name">{{type.name}}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <div *ngIf="scrollLast(last)"></div>
+    <!-- Component iterator (Dialogflow Gateway Feature) -->
+  </table>
+  <table *ngIf="showIndicator" class="message">
+    <tr>
+      <td>
+        <div style="display:flex-root;">
+          <div class="bubble to">
+            <div id="typing-indicator"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+  <!-- </div>
+  </div> -->
+</div>
+<div #scrollElement></div>
+
+<div id="bottomInput" #bottomInput class="chat-footer">
+  <div class="suggestions" *ngIf="lastMsg">
+  </div>
+
+  <mat-form-field *ngIf="lastMsg?.slotToElicit==='startDate' || lastMsg?.slotToElicit==='endDate'" appearance="standard"
+    style="width: 96%;">
+    <mat-label>Select Date</mat-label>
+    <input #ref [matDatepicker]="picker" [min]="minDate" [max]="maxDate" matInput placeholder="Select Date"
+      (dateInput)="sendMessage($event.targetElement.value, null, false)" (click)="picker.open()">
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker touchUi #picker></mat-datepicker>
+  </mat-form-field>
+
+  <mat-form-field *ngIf="lastMsg?.sessionAttributes?.selectTypes" appearance="standard" style="width: 96%;">
+    <mat-label>Select</mat-label>
+    <mat-select (selectionChange)="sendMessage($event.value, null, false)" [(ngModel)]="formValue">
+      <mat-option>None</mat-option>
+      <mat-option *ngFor="let type of types" [value]="type.name">
+        {{type.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <!-- <mat-form-field *ngIf="lastMsg.showInput && userId" appearance="standard" style="width: 96%;"> -->
+  <mat-form-field *ngIf="lastMsg.showInput" appearance="standard" style="width: 96%;">
+    <input matInput autocomplete="off" style="margin-bottom: 0px;" [(ngModel)]="formValue" (keyup.enter)="sendMessage()"
+      type="text" placeholder="Ask a question or type 'Help' to know what I can do for you.">
+    <mat-icon matSuffix (click)="sendMessage()" matTooltip="Send Messsage">send</mat-icon>
+  </mat-form-field>
+</div>
