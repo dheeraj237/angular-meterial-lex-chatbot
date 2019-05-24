@@ -31,7 +31,7 @@ export class ChatDialogueComponent implements OnInit {
     showInput: true
   };
   hasButtonBeenClicked: boolean = false;
-  minDate = new Date();
+  // minDate = new Date();
   // minDate = moment(new Date()).format('YYYY-MM-DD')
   maxDate = new Date(2019, 12, 0);
   types: string[] = [];
@@ -64,20 +64,22 @@ export class ChatDialogueComponent implements OnInit {
           return acc.concat(val)
         })
       )
-    this.sendMessage('hi');
+    this.formValue = 'hi';
+    this.sendMessage(this.formValue);
   }
 
   sendMessage(msg: any = null, divId: string = null, showMsg: boolean = true) {
-    this.showIndicator = true;
+
     // console.log('msg ', msg)
     if (msg) {
       this.formValue = msg;
     }
-    if (this.lastMsg.sessionAttributes.selectTypes) {
-      delete this.sessionAttrib.selectTypes;
-    }
 
-    if (this.formValue) {
+    if (this.formValue && this.isEmpty(this.formValue)) {
+      this.showIndicator = true;
+      if (this.lastMsg.sessionAttributes.selectTypes) {
+        delete this.sessionAttrib.selectTypes;
+      }
       // console.log('from cpmonent session attrib', this.sessionAttrib)
       this.chat.converse(this.formValue, this.sessionAttrib, showMsg)
         .then((data) => {
@@ -113,7 +115,17 @@ export class ChatDialogueComponent implements OnInit {
               all[i].disabled = true;
             }
           }
-        });
+        })
+        .catch(err => {
+          this.lastMsg.showInput = true;
+          this.lastMsg.slotToElicit = '';
+          this.lastMsg.sessionAttributes = {};
+          this.showIndicator = false;
+          this.formValue = '';
+          console.log('ERROR [LEX RESPOSNE]:', err)
+        })
+    } else {
+      return false;
     }
   }
 
@@ -121,6 +133,10 @@ export class ChatDialogueComponent implements OnInit {
     if (last) {
       this.scroollProp.nativeElement.scrollIntoView({ behavior: "smooth", block: "end" });
     }
+  }
+
+  isEmpty(str) {
+    return str.trim().length !== 0;
   }
 
 }

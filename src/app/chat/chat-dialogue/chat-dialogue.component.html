@@ -13,8 +13,8 @@
       <!-- My message -->
       <td>
         <div style="display:flex-root;">
-          <div class="bubble" [ngClass]="{ 'from': message.sentBy === 'bot',
-                                                    'to':   message.sentBy === 'user' }">
+          <div class="bubble" [ngClass]="{ 'from': message.sentBy === 'user',
+                                                    'to':   message.sentBy === 'bot' }">
             <small>
               {{ message.content }}
             </small>
@@ -36,13 +36,16 @@
                 {{message.resCard.genericAttachments[0].subTitle}}</div>
               <br>
               <!-- <div class="card-text">{{message.resCard.genericAttachments[0].buttons}}</div> -->
-              <div id="{{'btn-'+message.timestamp}}" *ngIf="message.resCard.genericAttachments[0].buttons.length>0">
+              <div id="{{'btn-'+message.timestamp}}" *ngIf="message.resCard.genericAttachments[0].buttons">
                 <button name="{{'btn'+message.timestamp}}" [disabled]="hasButtonBeenClicked" id="message.timestamp"
                   class="suggestion" *ngFor="let resButton of message.resCard.genericAttachments[0].buttons" mat-button
                   (click)="sendMessage(resButton.value,'btn-'+message.timestamp, false)">{{resButton.text}}</button>
-                <!-- <a  target="_blank"
-                                    rel="noopener noreferrer" 
-                                    class="suggestion">{{resButton.text}}</a> -->
+              </div>
+              <div class="card-buttons" *ngIf="message.resCard.genericAttachments[0].attachmentLinkUrl">
+                <a target="_blank" rel="noopener noreferrer"
+                  href="{{message.resCard.genericAttachments[0].attachmentLinkUrl}}" class="card-button">
+                  <i aria-hidden="true" class="material-icons card-button-icon">arrow_forward</i>
+                  <span class="card-button-title">Open</span></a>
               </div>
             </div>
           </div>
@@ -91,30 +94,35 @@
 <div #scrollElement></div>
 
 <div id="bottomInput" #bottomInput class="chat-footer">
-  <div class="suggestions" *ngIf="lastMsg">
-  </div>
-
-  <mat-form-field *ngIf="lastMsg?.slotToElicit==='startDate' || lastMsg?.slotToElicit==='endDate'" appearance="standard"
-    style="width: 96%;">
-    <mat-label>Select Date</mat-label>
-    <input #ref [matDatepicker]="picker" [min]="minDate" [max]="maxDate" matInput placeholder="Select Date"
-      (dateInput)="sendMessage($event.targetElement.value, null, false)" (click)="picker.open()">
-    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-datepicker touchUi #picker></mat-datepicker>
-  </mat-form-field>
-
-  <mat-form-field *ngIf="lastMsg?.sessionAttributes?.selectTypes" appearance="standard" style="width: 96%;">
-    <mat-label>Select</mat-label>
-    <mat-select (selectionChange)="sendMessage($event.value, null, false)" [(ngModel)]="formValue">
-      <mat-option>None</mat-option>
-      <mat-option *ngFor="let type of types" [value]="type.name">
-        {{type.name}}</mat-option>
-    </mat-select>
-  </mat-form-field>
+  <!-- <div class="suggestions" *ngIf="lastMsg">
+  </div> -->
+  <p *ngIf="lastMsg?.slotToElicit==='startDate' || lastMsg?.slotToElicit==='endDate'"
+    style="padding: 0px 10px 10px 10px;margin: 0px;">
+    <mat-form-field appearance="standard" style="width: 100%;">
+      <mat-label>Select Date</mat-label>
+      <input #ref [matDatepicker]="picker" [min]="minDate" [max]="maxDate" matInput placeholder="Select Date"
+        (dateInput)="sendMessage($event.targetElement.value, null, false)" (click)="picker.open()">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker touchUi #picker></mat-datepicker>
+    </mat-form-field>
+  </p>
+  <p *ngIf="lastMsg?.sessionAttributes?.selectTypes" style="padding: 0px 10px 10px 10px;;margin: 0px;">
+    <mat-form-field appearance="standard" style="width: 100%;">
+      <mat-label>Select</mat-label>
+      <mat-select (selectionChange)="sendMessage($event.value, null, false)" [(ngModel)]="formValue">
+        <mat-option>None</mat-option>
+        <mat-option *ngFor="let type of types" [value]="type.name">
+          {{type.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </p>
   <!-- <mat-form-field *ngIf="lastMsg.showInput && userId" appearance="standard" style="width: 96%;"> -->
-  <mat-form-field *ngIf="lastMsg.showInput" appearance="standard" style="width: 96%;">
-    <input matInput autocomplete="off" style="margin-bottom: 0px;" [(ngModel)]="formValue" (keyup.enter)="sendMessage()"
-      type="text" placeholder="Ask a question or type 'Help' to know what I can do for you.">
-    <mat-icon matSuffix (click)="sendMessage()" matTooltip="Send Messsage">send</mat-icon>
-  </mat-form-field>
+  <p *ngIf="lastMsg.showInput" style="padding: 0px 10px 10px 10px;margin: 0px;">
+    <mat-form-field appearance="standard" style="width: 100%;">
+      <input matInput autocomplete="off" style="margin-bottom: 0px;" [(ngModel)]="formValue"
+        (keyup.enter)="sendMessage()" type="text"
+        placeholder="Ask a question or type 'Help' to know what I can do for you.">
+      <mat-icon matSuffix (click)="sendMessage()" matTooltip="Send Messsage">send</mat-icon>
+    </mat-form-field>
+  </p>
 </div>

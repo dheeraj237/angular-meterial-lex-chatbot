@@ -9,6 +9,7 @@ import { lexInput } from '../lexInput'
 import { Globals } from '../globals'
 
 import { Observable, BehaviorSubject } from 'rxjs';
+import { forEach } from '@angular/router/src/utils/collection';
 // import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 export class Message {
@@ -38,7 +39,7 @@ export class ChatService {
 
   converse(msg: any, seesionAtribb: any, showMsg: boolean = true): Promise<any> {
     return new Promise((resolve, reject) => {
-      const userMsg = new Message(msg, 'bot', (new Date().getTime()), null, null);
+      const userMsg = new Message(msg, 'user', (new Date().getTime()), null, null);
       let lexMsg = new lexParams();
       lexMsg.botAlias = environment.lex.botAlias;
       lexMsg.botName = environment.lex.botName;
@@ -54,9 +55,23 @@ export class ChatService {
         if (err)
           reject(err);
 
-        const speech = data.message;
-        const userMsg = new Message(speech, 'user', (new Date().getTime()), (data.responseCard ? data.responseCard : null), (data.slotToElicit ? data.slotToElicit : null))
-        this.update(userMsg);
+        let speech = data.message;
+        if (speech.includes('messages') && speech.includes('group')) {
+          let newSpeech = JSON.parse(speech);
+          let arrSize = newSpeech.messages.length;
+          newSpeech.messages.forEach((msg, i) => {
+            if (i === arrSize) {
+              const userMsg = new Message(msg.value, 'bot', (new Date().getTime()), (data.responseCard ? data.responseCard : null), (data.slotToElicit ? data.slotToElicit : null))
+              this.update(userMsg);
+            } else {
+              const userMsg = new Message(msg.value, 'bot', (new Date().getTime()), null, null)
+              this.update(userMsg);
+            }
+          });
+        } else {
+          const userMsg = new Message(speech, 'bot', (new Date().getTime()), (data.responseCard ? data.responseCard : null), (data.slotToElicit ? data.slotToElicit : null))
+          this.update(userMsg);
+        }
         resolve(data);
       });
     });
